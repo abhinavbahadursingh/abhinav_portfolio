@@ -1,0 +1,236 @@
+import { useEffect, useState, useRef } from "react";
+import {
+  Home,
+  User,
+  Code,
+  Briefcase,
+  MessageSquare,
+  Mail,
+  BookOpen,
+  Sun,
+  Moon,
+  Youtube,
+  Volume2,
+  VolumeX,
+  Github,
+  Linkedin,
+  Globe,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { name: "Home", href: "#hero", icon: Home },
+  { name: "About", href: "#about", icon: User },
+  { name: "Skills", href: "#skills", icon: Code },
+  { name: "Experience", href: "#experience", icon: Briefcase },
+  { name: "Projects", href: "#projects", icon: BookOpen },
+  { name: "Contact", href: "#contact", icon: Mail },
+];
+
+const ThemeToggle = () => {
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("theme");
+    if (stored === "dark") {
+      document.documentElement.classList.add("dark");
+      setTheme("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", newTheme);
+    setTheme(newTheme);
+  };
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
+      title="Toggle theme"
+      aria-label="Toggle theme"
+    >
+      {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+    </button>
+  );
+};
+
+export const Navbar = () => {
+  const [activeSection, setActiveSection] = useState("#hero");
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isAudioReady, setIsAudioReady] = useState(false);
+  const lastScrollYRef = useRef(0);
+  const audioRef = useRef(null);
+
+  const musicUrl = "/music.mp3";
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      audioRef.current = new Audio(musicUrl);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.5;
+      audioRef.current.preload = "auto";
+
+      const handleCanPlay = () => setIsAudioReady(true);
+
+      audioRef.current.addEventListener("canplaythrough", handleCanPlay);
+
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.removeEventListener("canplaythrough", handleCanPlay);
+          audioRef.current = null;
+        }
+      };
+    }
+  }, []);
+
+  const toggleMusic = () => {
+    if (!audioRef.current || !isAudioReady) return;
+
+    if (isMusicPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(console.error);
+    }
+
+    setIsMusicPlaying(!isMusicPlaying);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const sections = navItems.map((item) => item.href);
+      const scrollPosition = currentScrollY + 150;
+
+      for (const section of sections) {
+        const element = document.querySelector(section);
+        if (element) {
+          const offsetTop = element.offsetTop;
+          const offsetHeight = element.offsetHeight;
+
+          if (
+            scrollPosition >= offsetTop &&
+            scrollPosition < offsetTop + offsetHeight
+          ) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <>
+      {/* Top Right Buttons */}
+      <motion.div
+        className="fixed top-4 right-4 z-50 flex gap-2"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+
+        {/* GitHub Button */}
+        <motion.a
+          href="https://github.com/abhinavbahadursingh" 
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "p-2 rounded-full bg-white/80 dark:bg-black/80 backdrop-blur-md",
+            "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50",
+            "border border-gray-200 dark:border-gray-700 shadow-sm",
+            "flex items-center justify-center"
+          )}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          title="GitHub Profile"
+          aria-label="GitHub Profile"
+        >
+          <Github className="w-5 h-5" />
+        </motion.a>
+
+        {/* LinkedIn Button */}
+        <motion.a
+          href="https://linkedin.com/in/abhinavbahadursingh" 
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "p-2 rounded-full bg-white/80 dark:bg-black/80 backdrop-blur-md",
+            "text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50",
+            "border border-gray-200 dark:border-gray-700 shadow-sm",
+            "flex items-center justify-center"
+          )}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          title="LinkedIn Profile"
+          aria-label="LinkedIn Profile"
+        >
+          <Linkedin className="w-5 h-5" />
+        </motion.a>
+
+        {/* Music Button */}
+        <motion.button
+          onClick={toggleMusic}
+          disabled={!isAudioReady}
+          className={cn(
+            "p-2 rounded-full bg-white/80 dark:bg-black/80 backdrop-blur-md",
+            "text-primary hover:bg-primary/10 dark:hover:bg-primary/20",
+            "border border-gray-200 dark:border-gray-700 shadow-sm",
+            "flex items-center justify-center",
+            !isAudioReady && "opacity-50 cursor-not-allowed"
+          )}
+          whileHover={{ scale: isAudioReady ? 1.05 : 1 }}
+          whileTap={{ scale: isAudioReady ? 0.95 : 1 }}
+          title={
+            isAudioReady ? (isMusicPlaying ? "Pause music" : "Play music") : "Loading music..."
+          }
+          aria-label={
+            isAudioReady ? (isMusicPlaying ? "Pause music" : "Play music") : "Loading music"
+          }
+        >
+          {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+        </motion.button>
+      </motion.div>
+
+      {/* Permanently Fixed Bottom Floating Navbar with Expanded Width */}
+      <motion.div
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-2 max-w-[95vw]"
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="flex items-center justify-center bg-background/85 dark:bg-black/80 backdrop-blur-xl rounded-full shadow-2xl px-3 sm:px-5 py-2 sm:py-2.5 border border-border/80 dark:border-gray-800">
+          <div className="flex space-x-1.5 sm:space-x-3 items-center">
+            {navItems.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "px-3 sm:px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5 text-xs sm:text-sm font-medium",
+                  activeSection === item.href
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                )}
+                aria-label={item.name}
+              >
+                <item.icon className="w-4 h-4 sm:w-4.5 sm:h-4.5 flex-shrink-0" />
+                <span className="hidden sm:inline-block">{item.name}</span>
+              </a>
+            ))}
+            <div className="flex items-center pl-1 sm:pl-2 border-l border-border/60">
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  );
+};
